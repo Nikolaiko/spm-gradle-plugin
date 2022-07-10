@@ -1,0 +1,158 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ParseConfigTask</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">gradle.multiplatform.spm.tasks</a>
+</div>
+
+<h1>Coverage Summary for Class: ParseConfigTask (gradle.multiplatform.spm.tasks)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ParseConfigTask</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (3/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (22/22)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package gradle.multiplatform.spm.tasks
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import gradle.multiplatform.spm.extensions.ProjectFileExtension
+<i class="no-highlight">4</i>&nbsp;import gradle.multiplatform.spm.model.notFoundSPMFileException
+<i class="no-highlight">5</i>&nbsp;import gradle.multiplatform.spm.model.parsingFileException
+<i class="no-highlight">6</i>&nbsp;import gradle.multiplatform.spm.model.serialization.MainFileContent
+<i class="no-highlight">7</i>&nbsp;import gradle.multiplatform.spm.model.spmFileName
+<i class="no-highlight">8</i>&nbsp;import gradle.multiplatform.spm.model.spmGroupName
+<i class="no-highlight">9</i>&nbsp;import kotlinx.serialization.SerializationException
+<i class="no-highlight">10</i>&nbsp;import kotlinx.serialization.decodeFromString
+<i class="no-highlight">11</i>&nbsp;import kotlinx.serialization.json.Json
+<i class="no-highlight">12</i>&nbsp;import org.gradle.api.DefaultTask
+<i class="no-highlight">13</i>&nbsp;import org.gradle.api.GradleException
+<i class="no-highlight">14</i>&nbsp;import org.gradle.api.tasks.Internal
+<i class="no-highlight">15</i>&nbsp;import org.gradle.api.tasks.TaskAction
+<i class="no-highlight">16</i>&nbsp;import kotlin.reflect.typeOf
+<i class="no-highlight">17</i>&nbsp;
+<i class="no-highlight">18</i>&nbsp;
+<b class="fc"><i class="no-highlight">19</i>&nbsp;abstract class ParseConfigTask : DefaultTask() {</b>
+<i class="no-highlight">20</i>&nbsp;
+<b class="fc"><i class="no-highlight">21</i>&nbsp;    init {</b>
+<b class="fc"><i class="no-highlight">22</i>&nbsp;        group = spmGroupName</b>
+<i class="no-highlight">23</i>&nbsp;    }
+<i class="no-highlight">24</i>&nbsp;
+<i class="no-highlight">25</i>&nbsp;    @get:Internal
+<b class="fc"><i class="no-highlight">26</i>&nbsp;    internal lateinit var filesData: ProjectFileExtension</b>
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;    @TaskAction
+<i class="no-highlight">29</i>&nbsp;    fun parseSpmFile() {
+<b class="fc"><i class="no-highlight">30</i>&nbsp;        try {</b>
+<b class="fc"><i class="no-highlight">31</i>&nbsp;            val spmFile = filesData.mainProjectFile</b>
+<b class="fc"><i class="no-highlight">32</i>&nbsp;                .walkTopDown()</b>
+<b class="fc"><i class="no-highlight">33</i>&nbsp;                .first { it.isFile &amp;&amp; it.name == spmFileName }</b>
+<i class="no-highlight">34</i>&nbsp;
+<b class="fc"><i class="no-highlight">35</i>&nbsp;            val fileContent = spmFile.readText()</b>
+<b class="fc"><i class="no-highlight">36</i>&nbsp;            val projectPackages = Json.decodeFromString&lt;MainFileContent&gt;(fileContent)</b>
+<i class="no-highlight">37</i>&nbsp;
+<b class="fc"><i class="no-highlight">38</i>&nbsp;            filesData.spmConfigVersion = projectPackages.version</b>
+<b class="fc"><i class="no-highlight">39</i>&nbsp;            projectPackages.pins.forEach {</b>
+<b class="fc"><i class="no-highlight">40</i>&nbsp;                filesData.spmPackage(</b>
+<b class="fc"><i class="no-highlight">41</i>&nbsp;                    name = it.identity,</b>
+<b class="fc"><i class="no-highlight">42</i>&nbsp;                    git = it.location,</b>
+<b class="fc"><i class="no-highlight">43</i>&nbsp;                    lastCommitHash = it.state.revision,</b>
+<b class="fc"><i class="no-highlight">44</i>&nbsp;                    branchName = it.state.branch</b>
+<i class="no-highlight">45</i>&nbsp;                )
+<b class="fc"><i class="no-highlight">46</i>&nbsp;            }</b>
+<b class="fc"><i class="no-highlight">47</i>&nbsp;        } catch (notFoundError: NoSuchElementException) {</b>
+<b class="fc"><i class="no-highlight">48</i>&nbsp;            throw GradleException(&quot;$notFoundSPMFileException : ${filesData.mainProjectFile.absolutePath}&quot;, notFoundError)</b>
+<b class="fc"><i class="no-highlight">49</i>&nbsp;        } catch (parsingError: SerializationException) {</b>
+<b class="fc"><i class="no-highlight">50</i>&nbsp;            throw GradleException(parsingError.message ?: parsingFileException, parsingError)</b>
+<i class="no-highlight">51</i>&nbsp;        }
+<i class="no-highlight">52</i>&nbsp;    }
+<i class="no-highlight">53</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2022-07-10 18:44</div>
+</div>
+</body>
+</html>
