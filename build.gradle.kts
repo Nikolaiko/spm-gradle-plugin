@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.nikolai"
-version = "1.0-SNAPSHOT"
+version = "1.0.0"
 
 repositories {
     mavenCentral()
@@ -35,8 +35,13 @@ gradlePlugin {
 dependencies {
     implementation(kotlin("stdlib"))
 
+    //Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3")
 
+    //KGit
+    implementation("com.github.sya-ri:kgit:1.0.5")
+
+    //Test
     testImplementation(platform("org.junit:junit-bom:5.9.0-M1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 

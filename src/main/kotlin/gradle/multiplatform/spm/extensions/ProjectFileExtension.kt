@@ -1,22 +1,28 @@
 package gradle.multiplatform.spm.extensions
 
 import gradle.multiplatform.spm.model.defaultConfigVersion
+import gradle.multiplatform.spm.model.projectProperties.ProjectType
 import gradle.multiplatform.spm.model.spm.SpmPackage
 import gradle.multiplatform.spm.model.spm.SpmSourceType
 import gradle.multiplatform.spm.model.spmKindFieldValue
+import gradle.multiplatform.spm.services.KGitService
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.model.ObjectFactory
-import org.gradle.kotlin.dsl.get
 import java.io.File
 import javax.inject.Inject
 
 open class ProjectFileExtension @Inject constructor(objectFactory: ObjectFactory) {
-    lateinit var mainProjectFile: File
+    var mainProjectFile: File? = null
+    var mainProjectFileType: String = ProjectType.NotSet.name
+
+    internal var projectFileType = ProjectType.NotSet
 
     internal val spmPackages: NamedDomainObjectContainer<SpmPackage> =
         objectFactory.domainObjectContainer(SpmPackage::class.java)
 
     internal var spmConfigVersion = defaultConfigVersion
+
+    private val gitService = KGitService()
 
     fun spmPackage(
         name: String,
@@ -40,19 +46,22 @@ open class ProjectFileExtension @Inject constructor(objectFactory: ObjectFactory
         sourceName: String,
         git: String
     ) {
-//        val existingPackage = spmPackages.findByName(name)
-//        if (existingPackage == null) {
-//            spmPackages.create(name) {
-//                this.version = version
-//                location = git
-//                kind = spmKindFieldValue
-//                revision = lastCommitHash
-//            }
-//        }
+        val sourceType = getSourceTypeFromValue(sourceName)
+        val data = gitService.getRepositoryData(git, sourceName, sourceType)
+        val existingPackage = spmPackages.findByName(data.packageIdentity)
+        if (existingPackage == null) {
+            spmPackages.create(data.packageIdentity) {
+                this.sourceName = sourceName
+                this.location = git
+                this.kind = spmKindFieldValue
+                this.revision = data.revisionId
+                this.sourceType = sourceType
+            }
+        }
     }
 
     private fun getSourceTypeFromValue(value: String) = when(value.contains(".")) {
-        true -> SpmSourceType.nextMajorVersion
-        false -> SpmSourceType.branch
+        true -> SpmSourceType.CurrentVersion
+        false -> SpmSourceType.Branch
     }
 }

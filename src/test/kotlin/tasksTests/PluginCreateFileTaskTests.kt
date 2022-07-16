@@ -1,13 +1,20 @@
+package tasksTests
+
+import consts.*
 import gradle.multiplatform.spm.extensions.ProjectFileExtension
+import gradle.multiplatform.spm.model.createSpmFileTaskName
 import gradle.multiplatform.spm.model.fileDataExtensionName
-import gradle.multiplatform.spm.model.spm.SpmSourceType
+import gradle.multiplatform.spm.model.parseSpmFileTaskName
+import gradle.multiplatform.spm.tasks.GenerateSPMConfigTask
+import gradle.multiplatform.spm.tasks.ParseConfigTask
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.*
+import rightTestProject
 import java.io.File
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class PluginFileExtensionTests {
+class PluginCreateFileTaskTests {
+
     private val testProject = ProjectBuilder.builder().build()
 
     @BeforeAll
@@ -19,7 +26,9 @@ class PluginFileExtensionTests {
     }
 
     @Test
-    fun testAddingSPM() {
+    fun testFileCreatingSPMFile() {
+        val parseTask = testProject.tasks.getByName(parseSpmFileTaskName) as ParseConfigTask
+        val createTask = testProject.tasks.getByName(createSpmFileTaskName) as GenerateSPMConfigTask
         val extension = testProject.extensions.getByName(fileDataExtensionName) as ProjectFileExtension
 
         assertDoesNotThrow {
@@ -31,13 +40,12 @@ class PluginFileExtensionTests {
             )
         }
 
-        assertEquals(extension.spmPackages.size, 1)
-        assertNotNull(extension.spmPackages.find {
-            it.identity == addingTestIdentity &&
-                    it.sourceName == addingTestBranch &&
-                    it.location == addingTestLocation &&
-                    it.revision == addingTestRevision &&
-                    it.sourceType == SpmSourceType.branch
-        })
+        assertDoesNotThrow {
+            parseTask.parseSpmFile()
+        }
+
+        assertDoesNotThrow {
+            createTask.createSpmFile()
+        }
     }
 }

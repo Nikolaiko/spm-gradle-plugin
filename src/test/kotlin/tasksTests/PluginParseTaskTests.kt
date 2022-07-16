@@ -1,12 +1,18 @@
+package tasksTests
+
+import consts.*
 import gradle.multiplatform.spm.extensions.ProjectFileExtension
 import gradle.multiplatform.spm.model.parseSpmFileTaskName
 import gradle.multiplatform.spm.model.fileDataExtensionName
 import gradle.multiplatform.spm.tasks.ParseConfigTask
 import kotlinx.serialization.SerializationException
+import noSPMFileTestProject
 import org.gradle.api.GradleException
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
+import rightTestProject
+import wrongFormatTestProject
 import java.io.File
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -42,17 +48,12 @@ class PluginParseTaskTests {
     @Test
     fun testNotFoundSPMFile() {
         val extension = testProject.extensions.getByName(fileDataExtensionName) as ProjectFileExtension
-        extension.mainProjectFile = File(wrongTestProject)
+        extension.mainProjectFile = File(noSPMFileTestProject)
 
         val task = testProject.tasks.getByName(parseSpmFileTaskName) as ParseConfigTask
-        var exceptionCause: Throwable? = null
-
-        try {
+        assertDoesNotThrow {
             task.parseSpmFile()
-        } catch (gradleError: GradleException) {
-            exceptionCause = gradleError.cause
         }
-        assertTrue(exceptionCause is NoSuchElementException)
     }
 
     @Test

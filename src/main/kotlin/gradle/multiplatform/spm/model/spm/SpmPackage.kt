@@ -6,5 +6,5 @@ open class SpmPackage(val name: String) {
     var location: String = ""
     var sourceName: String = ""
     var revision: String = ""
-    var sourceType: SpmSourceType = SpmSourceType.branch
+    var sourceType: SpmSourceType = SpmSourceType.Branch
 }

@@ -1,3 +1,4 @@
+import consts.pluginId
 import gradle.multiplatform.spm.extensions.ProjectFileExtension
 import gradle.multiplatform.spm.model.parseSpmFileTaskName
 import gradle.multiplatform.spm.model.fileDataExtensionName

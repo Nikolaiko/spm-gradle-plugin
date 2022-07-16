@@ -1,3 +1,5 @@
+package consts
+
 const val pluginId = "org.nikolai.multiplatform.spm"
 
 const val testConfigVersion = 2

@@ -1,21 +1,17 @@
 package gradle.multiplatform.spm.tasks
 
 import gradle.multiplatform.spm.extensions.ProjectFileExtension
-import gradle.multiplatform.spm.model.notFoundSPMFileException
-import gradle.multiplatform.spm.model.serialization.MainFileContent
-import gradle.multiplatform.spm.model.serialization.PackageParameters
-import gradle.multiplatform.spm.model.serialization.PackageState
+import gradle.multiplatform.spm.model.*
+import gradle.multiplatform.spm.model.serialization.spm.MainFileContent
+import gradle.multiplatform.spm.model.serialization.spm.PackageParameters
+import gradle.multiplatform.spm.model.serialization.spm.PackageState
 import gradle.multiplatform.spm.model.spm.SpmSourceType
-import gradle.multiplatform.spm.model.spmFileName
-import gradle.multiplatform.spm.model.spmGroupName
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
-import org.gradle.internal.impldep.com.fasterxml.jackson.databind.ObjectMapper
 
 abstract class GenerateSPMConfigTask : DefaultTask() {
     init {
@@ -28,15 +24,21 @@ abstract class GenerateSPMConfigTask : DefaultTask() {
     @TaskAction
     fun createSpmFile() {
         try {
-            val spmFile = filesData.mainProjectFile
+
+            val spmFile = filesData.mainProjectFile!!
                 .walkTopDown()
                 .first { it.isFile && it.name == spmFileName }
+
+            if (filesData.spmPackages.isEmpty()) {
+                spmFile.delete()
+                return
+            }
 
             val pins = mutableListOf<PackageParameters>()
             filesData.spmPackages.forEach {
                 val stats = when(it.sourceType) {
-                    SpmSourceType.branch -> PackageState(branch = it.sourceName, revision = it.revision)
-                    SpmSourceType.nextMajorVersion -> PackageState(version = it.sourceName, revision = it.revision)
+                    SpmSourceType.Branch -> PackageState(branch = it.sourceName, revision = it.revision)
+                    SpmSourceType.CurrentVersion -> PackageState(version = it.sourceName, revision = it.revision)
                 }
 
                 val pin = PackageParameters(
@@ -61,8 +63,14 @@ abstract class GenerateSPMConfigTask : DefaultTask() {
 
             spmFile.writeText(stringFileContent)
 
+            didWork = true
+
         } catch (notFoundError: NoSuchElementException) {
-            throw GradleException("$notFoundSPMFileException : ${filesData.mainProjectFile.absolutePath}", notFoundError)
+            didWork = false
+            throw GradleException("$notFoundSPMFileException : ${filesData.mainProjectFile?.absolutePath}", notFoundError)
+        } catch (nullPointerError: NullPointerException) {
+            didWork = false
+            throw GradleException(mainFileIsNullException, nullPointerError)
         }
     }
 }
