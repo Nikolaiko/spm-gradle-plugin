@@ -1,5 +1,6 @@
 plugins {
     `kotlin-dsl`.version("2.3.3")
+
     id("java-gradle-plugin")
     id("org.gradle.maven-publish")
 
@@ -42,6 +43,7 @@ dependencies {
     implementation("com.github.sya-ri:kgit:1.0.5")
 
     //Test
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4")
     testImplementation(platform("org.junit:junit-bom:5.9.0-M1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 

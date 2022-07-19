@@ -5,7 +5,7 @@ import gradle.multiplatform.spm.model.projectProperties.ProjectType
 import gradle.multiplatform.spm.model.spm.SpmPackage
 import gradle.multiplatform.spm.model.spm.SpmSourceType
 import gradle.multiplatform.spm.model.spmKindFieldValue
-import gradle.multiplatform.spm.services.KGitService
+import gradle.multiplatform.spm.services.repository.GitApiService
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.model.ObjectFactory
 import java.io.File
@@ -22,7 +22,7 @@ open class ProjectFileExtension @Inject constructor(objectFactory: ObjectFactory
 
     internal var spmConfigVersion = defaultConfigVersion
 
-    private val gitService = KGitService()
+    private val gitService = GitApiService()
 
     fun spmPackage(
         name: String,

@@ -1,4 +1,4 @@
-package gradle.multiplatform.spm.model.serialization.git
+package gradle.multiplatform.spm.model.serialization.git.fileContent
 
 import kotlinx.serialization.Serializable
 
